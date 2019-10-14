@@ -1,4 +1,5 @@
 const ENV = process.env.NODE_ENV || 'development';
+const creds = require('./db/config');
 
 const baseConfig = {
   client: 'pg',
@@ -13,16 +14,14 @@ const baseConfig = {
 const customConfig = {
   development: {
     connection: {
-      database: 'nc_news'
-      // user,
-      // password
+      database: 'nc_news',
+      ...creds
     }
   },
   test: {
     connection: {
-      database: 'nc_news_test'
-      // user,
-      // password
+      database: 'nc_news_test',
+      ...creds
     }
   }
 };
