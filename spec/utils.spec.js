@@ -28,7 +28,53 @@ describe('UTILS', () => {
     });
   });
 
-  describe('makeRefObj', () => {});
+  describe('makeRefObj', () => {
+    const articleData = [
+      {
+        article_id: 1,
+        title: 'Living in the shadow of a great man'
+      }
+    ];
+    it('Should accept an array with an object and return a RO with the id relating to the title', () => {
+      expect(makeRefObj(articleData)).to.eql({
+        'Living in the shadow of a great man': 1
+      });
+    });
+    it('Should accept an array with multiple objects', () => {
+      articleData.push({
+        article_id: 2,
+        title: 'New Title'
+      });
+      expect(makeRefObj(articleData)).to.eql({
+        'Living in the shadow of a great man': 1,
+        'New Title': 2
+      });
+    });
+  });
 
-  describe('formatComments', () => {});
+  describe('formatComments', () => {
+    it('Should accept an array of one comment and a reference object and return an array with the formated comment having its created_by changed to an author key', () => {
+      const obj = [{ created_by: 'john', belongs_to: 'articleTitle' }];
+      expect(formatComments(obj)[0].author).to.equal('john');
+    });
+    it('Should have an article_id key and NOT a belongs_to key', () => {
+      const obj = [{ created_by: 'john', belongs_to: 1 }];
+      expect(formatComments(obj)[0]).to.haveOwnProperty('article_id');
+      expect(formatComments(obj)[0]).to.not.haveOwnProperty('belongs_to');
+    });
+    it('Should be able to convert a given article title to its appropriate id', () => {
+      const obj = [{ created_by: 'john', belongs_to: 'articleTitle' }];
+      const ref = { articleTitle: 1 };
+      expect(formatComments(obj, ref)[0]).to.eql({
+        author: 'john',
+        article_id: 1
+      });
+    });
+    it('Should not mutate the original array', () => {
+      const obj = [{ created_by: 'john', belongs_to: 'articleTitle' }];
+      const ref = { articleTitle: 1 };
+      formatComments(obj);
+      expect(obj).to.eql([{ created_by: 'john', belongs_to: 'articleTitle' }]);
+    });
+  });
 });
