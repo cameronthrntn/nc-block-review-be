@@ -4,8 +4,8 @@ const chai = require('chai');
 const { expect } = chai;
 const request = require('supertest');
 const { app } = require('../app');
-// const chai_sorted = require('chai-sorted');
-// chai.use(chai_sorted);
+const chai_sorted = require('chai-sorted');
+chai.use(chai_sorted);
 const { connection } = require('../db/connection');
 
 after(() => connection.destroy());
@@ -104,6 +104,130 @@ describe('endpoints', () => {
       });
     });
     describe('/articles', () => {
+      it('Status 405: Should only allow GET requests', () => {
+        const notAllowed = ['put', 'delete', 'patch', 'post'];
+        const promises = notAllowed.map(method => {
+          return request(app)
+            [method]('/api/articles')
+            .expect(405)
+            .then(({ body }) => {
+              expect(body.msg).to.equal('Method not allowed!');
+            });
+        });
+        return Promise.all(promises);
+      });
+      describe('GET', () => {
+        describe('OK', () => {
+          it('Status 200: Should return an array of results', () => {
+            return request(app)
+              .get('/api/articles')
+              .expect(200)
+              .then(({ body }) => expect(body.articles).to.be.an('array'));
+          });
+          it('Status 200: Should sort given results by creation date by default', () => {
+            return request(app)
+              .get('/api/articles')
+              .expect(200)
+              .then(({ body }) =>
+                expect(body.articles).to.be.sortedBy('created_at', {
+                  descending: true
+                })
+              );
+          });
+          it('Status 200: Should sort given results by any valid column', () => {
+            return request(app)
+              .get('/api/articles?sort_by=article_id')
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.articles).to.be.sortedBy('article_id', {
+                  descending: true
+                });
+              });
+          });
+          it('Status 200: Should be able to be ordered by asc or desc', () => {
+            return request(app)
+              .get('/api/articles?order=asc')
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.articles).to.be.sortedBy('created_at', {
+                  descending: false
+                });
+              });
+          });
+          it('Status 200: Should be able to pass a sort query and an order', () => {
+            return request(app)
+              .get('/api/articles?sort_by=article_id&order=asc')
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.articles).to.be.sortedBy('article_id', {
+                  descending: false
+                });
+              });
+          });
+          it('Status 200: Should be able to be filtered by author', () => {
+            return request(app)
+              .get('/api/articles?author=rogersop')
+              .expect(200)
+              .then(({ body }) => {
+                expect(
+                  body.articles.filter(article => article.author === 'rogersop')
+                ).to.eql(body.articles);
+              });
+          });
+          it('Status 200: Should be able to be filtered by topic', () => {
+            return request(app)
+              .get('/api/articles?topic=mitch')
+              .expect(200)
+              .then(({ body }) => {
+                expect(
+                  body.articles.filter(article => article.topic === 'mitch')
+                ).to.eql(body.articles);
+              });
+          });
+          it('Status 200: Should be able to be filtered by author and topic', () => {
+            return request(app)
+              .get('/api/articles?topic=mitch&author=rogersop')
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.articles.length).to.equal(2);
+              });
+          });
+        });
+        describe('Error Handling', () => {
+          it('Status 404: Should return a 404 when trying to sort by a non-existant column', () => {
+            it('Status 200: Should sort given results by any valid column', () => {
+              return request(app)
+                .get('/api/articles?sort_by=gpngwpngrnp')
+                .expect(404)
+                .then(({ body }) => {
+                  expect(body.msg).to.be.equal('Column not found!');
+                });
+            });
+          });
+          it('Status 200: Should order given results by descending when given incorrect order', () => {
+            return request(app)
+              .get('/api/articles?order=vnsoibs')
+              .expect(200)
+              .then(({ body }) =>
+                expect(body.articles).to.be.sortedBy('created_at', {
+                  descending: true
+                })
+              );
+          });
+          it('Status 200: Should return an empty array for an author that doesnt exist', () => {
+            return request(app)
+              .get('/api/articles?author=vnsoibs')
+              .expect(200)
+              .then(({ body }) => expect(body.articles.length).to.equal(0));
+          });
+          it('Status 200: Should return an empty array for a topic that doesnt exist', () => {
+            return request(app)
+              .get('/api/articles?topic=vnsoibs')
+              .expect(200)
+              .then(({ body }) => expect(body.articles.length).to.equal(0));
+          });
+        });
+      });
       describe('/:article_id', () => {
         it('Status 405: Should only allow GET and PATCH requests', () => {
           const notAllowed = ['put', 'delete', 'post'];
@@ -132,6 +256,23 @@ describe('endpoints', () => {
                     'topic',
                     'author',
                     'created_at'
+                  ]);
+                });
+            });
+            xit('Status 200: Should return an article with a comment_count property', () => {
+              return request(app)
+                .get('/api/articles/1')
+                .expect(200)
+                .then(({ body }) => {
+                  expect(body.article).to.have.keys([
+                    'article_id',
+                    'title',
+                    'body',
+                    'votes',
+                    'topic',
+                    'author',
+                    'created_at',
+                    'comment_count'
                   ]);
                 });
             });
@@ -239,10 +380,7 @@ describe('endpoints', () => {
                   .post('/api/articles/1/comments')
                   .send({
                     body: 'New comment',
-                    article_id: 2,
-                    author: 'butter_bridge',
-                    votes: 312,
-                    created_at: new Date(Date.now()).toGMTString()
+                    username: 'butter_bridge'
                   })
                   .expect(201)
                   .then(({ body }) => {
@@ -255,13 +393,10 @@ describe('endpoints', () => {
               });
               it('Status 200: Should appear on a given articles list of comments', () => {
                 return request(app)
-                  .post('/api/articles/1/comments')
+                  .post('/api/articles/2/comments')
                   .send({
                     body: 'New comment',
-                    article_id: 2,
-                    author: 'butter_bridge',
-                    votes: 312,
-                    created_at: new Date(Date.now()).toGMTString()
+                    username: 'butter_bridge'
                   })
                   .expect(201)
                   .then(() => {
@@ -278,10 +413,51 @@ describe('endpoints', () => {
               });
             });
             describe('Error Handling', () => {
-              it('Status 422: Should return 422 for trying to post a comment to an article that doesnt exist ', () => {});
-              it('Status 400: Should return 400 for trying to post a comment to an article with an extra field ', () => {});
-              it('Status 400: Should return 400 for trying to post a comment to an article missing a NOT NULL field ', () => {});
-              it('Status 400: Should return 422 for trying to post a comment to an article with some invalid datatype', () => {});
+              it('Status 422: Should return 422 for trying to post a comment to an article that doesnt exist ', () => {
+                return request(app)
+                  .post('/api/articles/587/comments')
+                  .expect(422);
+              });
+              it('Status 400: Should return 400 for trying to post a comment by a user that doesnt exist ', () => {
+                return request(app)
+                  .post('/api/articles/1/comments')
+                  .send({
+                    body: 'New comment',
+                    author: 'Incorrect_User',
+                    votes: 312,
+                    created_at: new Date(Date.now()).toGMTString()
+                  })
+                  .expect(400);
+              });
+              it('Status 404: Should return 404 for trying to post a comment to an article with an extra field ', () => {
+                return request(app)
+                  .post('/api/articles/2/comments')
+                  .send({
+                    body: 'New comment',
+                    author: 'butter_bridge',
+                    votes: 312,
+                    created_at: new Date(Date.now()).toGMTString(),
+                    newField: 'OhDear'
+                  })
+                  .expect(404);
+              });
+              it('Status 400: Should return 400 for trying to post a comment to an article missing a NOT NULL field ', () => {
+                return request(app)
+                  .post('/api/articles/2/comments')
+                  .send({ body: 'merely a body' })
+                  .expect(400);
+              });
+              it('Status 400: Should return 400 for trying to post a comment to an article with some invalid datatype', () => {
+                return request(app)
+                  .post('/api/articles/2/comments')
+                  .send({
+                    body: 'New comment',
+                    author: 'butter_bridge',
+                    votes: 'Some String Here',
+                    created_at: new Date(Date.now()).toGMTString()
+                  })
+                  .expect(400);
+              });
             });
           });
           describe('GET', () => {
@@ -311,6 +487,46 @@ describe('endpoints', () => {
                   .expect(200)
                   .then(({ body }) => {
                     expect(body.comments).to.eql([]);
+                  });
+              });
+              it('Status 200: Should sort by created_at by default', () => {
+                return request(app)
+                  .get('/api/articles/1/comments')
+                  .expect(200)
+                  .then(({ body }) => {
+                    expect(body.comments).to.be.sortedBy('created_at', {
+                      descending: true
+                    });
+                  });
+              });
+              it('Status 200: Should be able to be sorted by any column', () => {
+                return request(app)
+                  .get('/api/articles/1/comments?sort_by=votes')
+                  .expect(200)
+                  .then(({ body }) => {
+                    expect(body.comments).to.be.sortedBy('votes', {
+                      descending: true
+                    });
+                  });
+              });
+              it('Status 200: Should be able to be sorted by asc or desc', () => {
+                return request(app)
+                  .get('/api/articles/1/comments?order=desc')
+                  .expect(200)
+                  .then(({ body }) => {
+                    expect(body.comments).to.be.sortedBy('created_at', {
+                      descending: true
+                    });
+                  });
+              });
+              it('Status 200: Should be able to pass a sort query and an order', () => {
+                return request(app)
+                  .get('/api/articles/1/comments?sort_by=votes&order=desc')
+                  .expect(200)
+                  .then(({ body }) => {
+                    expect(body.comments).to.be.sortedBy('votes', {
+                      descending: true
+                    });
                   });
               });
             });

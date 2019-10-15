@@ -1,13 +1,26 @@
 const { connection } = require('../db/connection');
 
 exports.insertComment = (id, body) => {
-  return connection
-    .insert(body)
-    .into('comments')
-    .returning('*');
+  return connection('articles')
+    .select('*')
+    .where('article_id', id)
+    .then(([article]) => {
+      if (!article) {
+        return Promise.reject({ code: 'noArticle' });
+      } else {
+        body.article_id = id;
+        body.author = body.username;
+        delete body.username;
+        return connection
+          .insert(body)
+          .into('comments')
+          .returning('*');
+      }
+    });
 };
 
-exports.selectComments = id => {
+exports.selectComments = (id, { sort_by = 'created_at', order = 'desc' }) => {
+  const orders = { asc: 'asc', desc: 'desc' };
   return connection('articles')
     .select('*')
     .where('article_id', id)
@@ -25,7 +38,8 @@ exports.selectComments = id => {
             'comments.body',
             'articles.article_id'
           )
-          .where('articles.article_id', id);
+          .where('articles.article_id', id)
+          .orderBy(sort_by, orders[order]);
       }
     });
 };

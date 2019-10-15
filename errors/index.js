@@ -19,7 +19,7 @@ exports.handleSQLError = (err, req, res, next) => {
   }
 };
 
-//Controller for error handling, not middleare function
+//Controller for error handling, not middleware function
 exports.notAllowed = (req, res, next) => {
   res.status(405).send({ msg: 'Method not allowed!' });
 };

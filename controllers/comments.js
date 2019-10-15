@@ -5,11 +5,15 @@ exports.postComment = (req, res, next) => {
     .then(([comment]) => {
       res.status(201).send({ comment });
     })
-    .catch(next);
+    .catch(err => {
+      if (err.code === 'noArticle')
+        res.status(422).send({ msg: 'Article not found!' });
+      else next(err);
+    });
 };
 
 exports.getComments = (req, res, next) => {
-  selectComments(req.params.article_id)
+  selectComments(req.params.article_id, req.query)
     .then(comments => {
       res.send({ comments });
     })
