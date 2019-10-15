@@ -544,5 +544,82 @@ describe('endpoints', () => {
         });
       });
     });
+    describe('/comments', () => {
+      describe('/:comment_id', () => {
+        it('Status 405: Should only allow PATCH and DELETE requests', () => {
+          const notAllowed = ['put', 'get', 'post'];
+          const promises = notAllowed.map(method => {
+            return request(app)
+              [method]('/api/comments/4')
+              .expect(405)
+              .then(({ body }) => {
+                expect(body.msg).to.equal('Method not allowed!');
+              });
+          });
+          return Promise.all(promises);
+        });
+        describe('PATCH', () => {
+          describe('OK', () => {
+            it('Status 200: Should increment a comments vote count when given an appropriate ID', () => {
+              return request(app)
+                .patch('/api/comments/1')
+                .send({ inc_votes: 20 })
+                .expect(200)
+                .then(({ body }) => {
+                  expect(body.votes).to.equal(36);
+                });
+            });
+            it('Status 200: Should not modify any other part of the comment', () => {
+              return request(app)
+                .patch('/api/comments/1')
+                .send({ inc_votes: 20 })
+                .expect(200)
+                .then(({ body }) => {
+                  expect(body.votes).to.equal(36);
+                  expect(body.comment_id).to.equal(1);
+                  expect(body.body).to.equal(
+                    "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!"
+                  );
+                  expect(body.author).to.equal('butter_bridge');
+                });
+            });
+          });
+          describe('Error Handling', () => {
+            it('Status 400: Should return a 400 when trying to increment any other columns', () => {
+              return request(app)
+                .patch('/api/comments/1')
+                .send({ body: 'Im patching the body oh my', inc_votes: 201 })
+                .expect(400);
+            });
+            it('Status 404: Should return a 404 for a non-existant article', () => {
+              return request(app)
+                .patch('/api/comments/2134')
+                .send({ inc_votes: 20 })
+                .expect(404)
+                .then(({ body }) => {
+                  expect(body.msg).to.equal('Comment not found!');
+                });
+            });
+            it('Status 400: Should return a 400 for a non-valid ID', () => {
+              return request(app)
+                .patch('/api/Comments/commentName')
+                .send({ inc_votes: 20 })
+                .expect(400)
+                .then(({ body }) => {
+                  expect(body.msg).to.equal('Bad request!');
+                });
+            });
+          });
+        });
+        describe.only('DELETE', () => {
+          describe('OK', () => {
+            it('', () => {});
+          });
+          describe('Error Handling', () => {
+            it('', () => {});
+          });
+        });
+      });
+    });
   });
 });

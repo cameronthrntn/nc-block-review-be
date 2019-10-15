@@ -1,4 +1,9 @@
-const { insertComment, selectComments } = require('../models/comments.js');
+const {
+  insertComment,
+  selectComments,
+  updateComment,
+  removeComment
+} = require('../models/comments.js');
 
 exports.postComment = (req, res, next) => {
   insertComment(req.params.article_id, req.body)
@@ -22,4 +27,19 @@ exports.getComments = (req, res, next) => {
         res.status(404).send({ msg: 'Article not found!' });
       else next(err);
     });
+};
+
+exports.patchComment = (req, res, next) => {
+  if (Object.keys(req.body).join('') != 'inc_votes') next({ code: '22P02' });
+  else
+    updateComment(req.params.comment_id, req.body)
+      .then(([comment]) => {
+        if (comment) res.send(comment);
+        else res.status(404).send({ msg: 'Comment not found!' });
+      })
+      .catch(next);
+};
+
+exports.deleteComment = (req, res, next) => {
+  removeComment();
 };

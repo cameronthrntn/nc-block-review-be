@@ -43,3 +43,11 @@ exports.selectComments = (id, { sort_by = 'created_at', order = 'desc' }) => {
       }
     });
 };
+
+exports.updateComment = (id, body) => {
+  return connection('comments')
+    .where('comments.comment_id', id)
+    .increment('votes', body.inc_votes)
+    .returning('*');
+};
+exports.removeComment = () => {};
