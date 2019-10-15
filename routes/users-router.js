@@ -8,4 +8,4 @@ usersRouter
   .get(getUserByUsername)
   .all(notAllowed);
 
-module.exports = { usersRouter };
+module.exports = usersRouter;

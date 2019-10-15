@@ -1,5 +1,5 @@
 exports.up = function(knex) {
-  console.log('creating users table...');
+  // console.log('creating users table...');
   return knex.schema
     .createTable('users', usersTable => {
       usersTable
@@ -11,13 +11,13 @@ exports.up = function(knex) {
       usersTable.string('name').notNullable();
     })
     .then(() => {
-      console.log('users table created!');
+      // console.log('users table created!');
     });
 };
 
 exports.down = function(knex) {
-  console.log('Dropping users table...');
+  // console.log('Dropping users table...');
   return knex.schema.dropTable('users').then(() => {
-    console.log('users table dropped.');
+    // console.log('users table dropped.');
   });
 };

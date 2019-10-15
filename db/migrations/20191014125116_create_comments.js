@@ -1,5 +1,5 @@
 exports.up = function(knex) {
-  console.log('creating comments table...');
+  // console.log('creating comments table...');
   return knex.schema
     .createTable('comments', commentsTable => {
       commentsTable.increments('comment_id').primary();
@@ -16,13 +16,13 @@ exports.up = function(knex) {
       commentsTable.text('body').notNullable();
     })
     .then(() => {
-      console.log('comments table created!');
+      // console.log('comments table created!');
     });
 };
 
 exports.down = function(knex) {
-  console.log('Dropping comments table...');
+  // console.log('Dropping comments table...');
   return knex.schema.dropTable('comments').then(() => {
-    console.log('comments table dropped.');
+    // console.log('comments table dropped.');
   });
 };

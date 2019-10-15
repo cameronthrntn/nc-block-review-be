@@ -8,4 +8,4 @@ topicsRouter
   .get(getTopics)
   .all(notAllowed);
 
-module.exports = { topicsRouter };
+module.exports = topicsRouter;

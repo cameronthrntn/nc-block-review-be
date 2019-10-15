@@ -13,8 +13,7 @@
     "mg-rb-test": "NODE_ENV=test knex migrate:rollback",
     "seed-dev": "npm run mg-rb && npm run mg-latest && knex seed:run",
     "seed-test": "npm run mg-rb-test && npm run mg-latest-test && NODE_ENV=test knex seed:run",
-    "test-utils": "mocha spec/utils.spec.js",
-    "test": "npm run seed-test && mocha spec"
+    "test": "mocha spec"
   },
   "repository": {
     "type": "git",

@@ -7,6 +7,8 @@ exports.formatDates = list => {
     item.created_at = new Date(item.created_at).toGMTString();
     return item;
   });
+  // console.log(dates);
+
   return dates;
 };
 

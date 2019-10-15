@@ -8,14 +8,19 @@ const {
 const { formatDates, formatComments, makeRefObj } = require('../utils/utils');
 
 exports.seed = function(knex) {
-  const topicsInsertions = knex('topics')
-    .insert(topicData)
-    .returning('*');
-  const usersInsertions = knex('users')
-    .insert(userData)
-    .returning('*');
+  return knex.migrate
+    .rollback()
+    .then(() => knex.migrate.latest())
+    .then(() => {
+      const topicsInsertions = knex('topics')
+        .insert(topicData)
+        .returning('*');
+      const usersInsertions = knex('users')
+        .insert(userData)
+        .returning('*');
 
-  return Promise.all([topicsInsertions, usersInsertions])
+      return Promise.all([topicsInsertions, usersInsertions]);
+    })
     .then(() => {
       const formatted = formatDates(articleData);
       return knex('articles')
@@ -33,6 +38,6 @@ exports.seed = function(knex) {
         .returning('*');
     })
     .then(() => {
-      console.log('Seeded database');
+      // console.log('Seeded database');
     });
 };
