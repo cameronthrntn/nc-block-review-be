@@ -145,13 +145,21 @@ describe('endpoints', () => {
         });
         return Promise.all(promises);
       });
-      describe('GET', () => {
+      describe.only('GET', () => {
         describe('OK', () => {
           it('Status 200: Should return an array of results', () => {
             return request(app)
               .get('/api/articles')
               .expect(200)
               .then(({ body }) => expect(body.articles).to.be.an('array'));
+          });
+          it('Status 200: Should return an array of size 12', () => {
+            return request(app)
+              .get('/api/articles')
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.articles).to.be.lengthOf(12);
+              });
           });
           it('Status 200: Should sort given results by creation date by default', () => {
             return request(app)
