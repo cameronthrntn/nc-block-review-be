@@ -145,7 +145,7 @@ describe('endpoints', () => {
         });
         return Promise.all(promises);
       });
-      describe.only('GET', () => {
+      describe('GET', () => {
         describe('OK', () => {
           it('Status 200: Should return an array of results', () => {
             return request(app)
