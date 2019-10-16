@@ -34,12 +34,18 @@ exports.patchComment = (req, res, next) => {
   else
     updateComment(req.params.comment_id, req.body)
       .then(([comment]) => {
-        if (comment) res.send(comment);
-        else res.status(404).send({ msg: 'Comment not found!' });
+        if (!comment) res.status(404).send({ msg: 'Comment not found!' });
+        else res.send(comment);
       })
       .catch(next);
 };
 
 exports.deleteComment = (req, res, next) => {
-  removeComment();
+  removeComment(req.params.comment_id)
+    .then(([comment]) => {
+      if (!comment)
+        res.status(404).send({ msg: "That comment doesn't exist!" });
+      else res.status(204).send();
+    })
+    .catch(next);
 };

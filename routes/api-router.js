@@ -4,10 +4,14 @@ const topicsRouter = require('./topics-router');
 const usersRouter = require('./users-router');
 const articlesRouter = require('./articles-router');
 const commentsRouter = require('./comments-router');
+const { notAllowed } = require('../errors');
 
-apiRouter.route('/').get((req, res, next) => {
-  res.send('Welcome to the api!');
-});
+apiRouter
+  .route('/')
+  .get((req, res, next) => {
+    res.send('Welcome to the api!');
+  })
+  .all(notAllowed);
 apiRouter.use('/topics', topicsRouter);
 apiRouter.use('/users', usersRouter);
 apiRouter.use('/articles', articlesRouter);

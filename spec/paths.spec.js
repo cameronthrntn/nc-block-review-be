@@ -24,6 +24,18 @@ describe('endpoints', () => {
       });
   });
   describe('/api', () => {
+    it('Status 405: Should only allow GET requests', () => {
+      const notAllowed = ['put', 'patch', 'delete', 'post'];
+      const promises = notAllowed.map(method => {
+        return request(app)
+          [method]('/api')
+          .expect(405)
+          .then(({ body }) => {
+            expect(body.msg).to.equal('Method not allowed!');
+          });
+      });
+      return Promise.all(promises);
+    });
     describe('/topics', () => {
       it('Status 405: Should only allow GET requests', () => {
         const notAllowed = ['put', 'patch', 'delete', 'post'];
@@ -248,7 +260,7 @@ describe('endpoints', () => {
                 .get('/api/articles/1')
                 .expect(200)
                 .then(({ body }) => {
-                  expect(body.article).to.have.keys([
+                  expect(body.article).to.contain.keys([
                     'article_id',
                     'title',
                     'body',
@@ -259,7 +271,7 @@ describe('endpoints', () => {
                   ]);
                 });
             });
-            xit('Status 200: Should return an article with a comment_count property', () => {
+            it('Status 200: Should return an article with a comment_count property', () => {
               return request(app)
                 .get('/api/articles/1')
                 .expect(200)
@@ -305,6 +317,15 @@ describe('endpoints', () => {
                 .expect(200)
                 .then(({ body }) => {
                   expect(body.votes).to.equal(120);
+                });
+            });
+            it('Status 200: Should decrement an articles vote count when given an appropriate ID and a negative number', () => {
+              return request(app)
+                .patch('/api/articles/1')
+                .send({ inc_votes: -20 })
+                .expect(200)
+                .then(({ body }) => {
+                  expect(body.votes).to.equal(80);
                 });
             });
             it('Status 200: Should not modify any other part of the article', () => {
@@ -569,6 +590,15 @@ describe('endpoints', () => {
                   expect(body.votes).to.equal(36);
                 });
             });
+            it('Status 200: Should decrement a comments vote count when given an appropriate ID and a negative number', () => {
+              return request(app)
+                .patch('/api/comments/1')
+                .send({ inc_votes: -5 })
+                .expect(200)
+                .then(({ body }) => {
+                  expect(body.votes).to.equal(11);
+                });
+            });
             it('Status 200: Should not modify any other part of the comment', () => {
               return request(app)
                 .patch('/api/comments/1')
@@ -611,12 +641,40 @@ describe('endpoints', () => {
             });
           });
         });
-        describe.only('DELETE', () => {
+        describe('DELETE', () => {
           describe('OK', () => {
-            it('', () => {});
+            it('Status 204: Should delete a given comment', () => {
+              return request(app)
+                .del('/api/comments/1')
+                .expect(204);
+            });
+            it('Status 204: Should not be able to find that comment on associated articles', () => {
+              return request(app)
+                .del('/api/comments/1')
+                .expect(204)
+                .then(() => {
+                  return request(app)
+                    .get('/api/articles/9/comments')
+                    .expect(200);
+                })
+                .then(({ body }) => {
+                  expect(
+                    body.comments.filter(comment => comment.comment_id === 1)
+                  ).to.be.empty;
+                });
+            });
           });
           describe('Error Handling', () => {
-            it('', () => {});
+            it('Status 404: Should return 404 for a non-existant comment', () => {
+              return request(app)
+                .del('/api/comments/29147')
+                .expect(404);
+            });
+            it('Status 400: Should return 400 for a non-numerical comment ID', () => {
+              return request(app)
+                .del('/api/comments/AParticularComment')
+                .expect(400);
+            });
           });
         });
       });

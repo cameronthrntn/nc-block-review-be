@@ -2,26 +2,11 @@ const { connection } = require('../db/connection');
 
 exports.selectArticle = id => {
   return connection('articles')
-    .select('*')
+    .select('articles.*')
+    .count({ comment_count: 'comments.article_id' })
+    .leftJoin('comments', 'comments.article_id', 'articles.article_id')
+    .groupBy('articles.article_id')
     .where('articles.article_id', id);
-  // return connection('articles')
-  //   .select('*')
-  //   .count('comments.comment_id')
-  //   .leftOuterJoin('comments', 'comments.article_id', 'articles.article_id')
-  //   .groupBy('articles.article_id')
-  //   .where('articles.article_id', id)
-  //   .then(article => {
-  //     console.log(article);
-  //   });
-  // .then(article => {
-  //   return
-  //     comments: connection
-  //       .select('comment_id')
-  //       .from('comments')
-  //       .where('comments.article_id', id),
-  //     article: article[0]
-
-  // })
 };
 
 exports.updateArticle = (id, body) => {

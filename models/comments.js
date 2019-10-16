@@ -50,4 +50,9 @@ exports.updateComment = (id, body) => {
     .increment('votes', body.inc_votes)
     .returning('*');
 };
-exports.removeComment = () => {};
+exports.removeComment = id => {
+  return connection('comments')
+    .where('comments.comment_id', id)
+    .del()
+    .returning('*');
+};
