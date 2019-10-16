@@ -13,7 +13,11 @@
     "mg-rb-test": "NODE_ENV=test knex migrate:rollback",
     "seed-dev": "npm run mg-rb && npm run mg-latest && knex seed:run",
     "seed-test": "npm run mg-rb-test && npm run mg-latest-test && NODE_ENV=test knex seed:run",
-    "test": "mocha spec"
+    "test": "mocha spec",
+    "seed:prod": "NODE_ENV=production DB_URL=$(heroku config:get DATABASE_URL) knex seed:run",
+    "migrate-latest:prod": "NODE_ENV=production DB_URL=$(heroku config:get DATABASE_URL) knex migrate:latest",
+    "migrate-rollback:prod": "NODE_ENV=production DB_URL=$(heroku config:get DATABASE_URL) knex migrate:rollback",
+    "start": "node listen.js"
   },
   "repository": {
     "type": "git",

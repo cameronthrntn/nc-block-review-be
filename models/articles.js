@@ -18,24 +18,11 @@ exports.updateArticle = (id, body) => {
 
 exports.selectArticles = ({ sort_by = 'created_at', order, author, topic }) => {
   const orders = { asc: 'asc', desc: 'desc' };
-  if (author && topic) {
-    return connection('articles')
-      .select('*')
-      .where({ author, topic })
-      .orderBy(sort_by, orders[order] || 'desc');
-  } else if (topic) {
-    return connection('articles')
-      .select('*')
-      .where('articles.topic', topic)
-      .orderBy(sort_by, orders[order] || 'desc');
-  } else if (author) {
-    return connection('articles')
-      .select('*')
-      .where('articles.author', author)
-      .orderBy(sort_by, orders[order] || 'desc');
-  } else {
-    return connection('articles')
-      .select('*')
-      .orderBy(sort_by, orders[order] || 'desc');
-  }
+  return connection('articles')
+    .select('*')
+    .modify(query => {
+      if (author) query.where({ author });
+      if (topic) query.where({ topic });
+    })
+    .orderBy(sort_by, orders[order] || 'desc');
 };

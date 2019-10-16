@@ -36,6 +36,23 @@ describe('endpoints', () => {
       });
       return Promise.all(promises);
     });
+    describe('GET', () => {
+      describe('OK', () => {
+        it('Status 200: Should return an object describing each endpoint of the API', () => {
+          return request(app)
+            .get('/api')
+            .expect(200)
+            .then(({ body }) => {
+              expect(body.description).to.contain.keys([
+                'Topics',
+                'Users',
+                'Articles',
+                'Comments'
+              ]);
+            });
+        });
+      });
+    });
     describe('/topics', () => {
       it('Status 405: Should only allow GET requests', () => {
         const notAllowed = ['put', 'patch', 'delete', 'post'];
