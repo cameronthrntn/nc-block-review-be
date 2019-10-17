@@ -1,7 +1,8 @@
 const {
   selectArticle,
   updateArticle,
-  selectArticles
+  selectArticles,
+  insertArticle
 } = require('../models/articles.js');
 const { selectUserByUsername } = require('../models/users');
 const { selectTopicBySlug } = require('../models/topics');
@@ -29,7 +30,15 @@ exports.patchArticle = (req, res, next) => {
 exports.getArticles = (req, res, next) => {
   selectArticles(req.query)
     .then(articles => {
-      res.send({ total_count: articles.length, articles });
+      res.send({ returned_results: articles.length, articles });
+    })
+    .catch(next);
+};
+
+exports.postArticle = (req, res, next) => {
+  insertArticle(req.body)
+    .then(([article]) => {
+      res.send({ article });
     })
     .catch(next);
 };

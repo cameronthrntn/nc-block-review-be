@@ -130,8 +130,8 @@ describe('endpoints', () => {
       });
     });
     describe('/articles', () => {
-      it('Status 405: Should only allow GET requests', () => {
-        const notAllowed = ['put', 'delete', 'patch', 'post'];
+      it('Status 405: Should only allow GET and POST requests', () => {
+        const notAllowed = ['put', 'delete', 'patch'];
         const promises = notAllowed.map(method => {
           return request(app)
             [method]('/api/articles')
@@ -296,7 +296,7 @@ describe('endpoints', () => {
                 expect(body.articles).to.be.lengthOf(5);
               });
           });
-          it('Status 200: Should have a key for the total number of articles', () => {
+          xit('Status 200: Should have a key for the total number of articles', () => {
             return request(app)
               .get('/api/articles')
               .expect(200)
@@ -328,6 +328,32 @@ describe('endpoints', () => {
             return request(app)
               .get('/api/articles?topic=vnsoibs')
               .expect(400);
+          });
+        });
+      });
+      describe('POST', () => {
+        describe('OK', () => {
+          it('Status 200: SHould let a user post a valid new article and return said article', () => {
+            return request(app)
+              .post('/api/articles')
+              .send({
+                title: 'New Article!',
+                body: 'This is a new article posted to the api',
+                topic: 'mitch',
+                author: 'rogersop'
+              })
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.article).to.have.keys(
+                  'article_id',
+                  'title',
+                  'body',
+                  'votes',
+                  'topic',
+                  'author',
+                  'created_at'
+                );
+              });
           });
         });
       });

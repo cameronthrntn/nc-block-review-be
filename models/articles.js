@@ -69,3 +69,9 @@ exports.selectArticles = ({
       return Promise.reject({ code: '22P02' });
     });
 };
+
+exports.insertArticle = article => {
+  return connection('articles')
+    .insert(article)
+    .returning('*');
+};

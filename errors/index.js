@@ -1,4 +1,6 @@
 exports.handleSQLError = (err, req, res, next) => {
+  // console.log(err);
+
   switch (err.code) {
     case '22P02':
       res.status(400).send({ msg: 'Bad request!' });

@@ -3,6 +3,7 @@ const articlesRouter = express.Router();
 const {
   getArticles,
   getArticle,
+  postArticle,
   patchArticle
 } = require('../controllers/articles.js');
 const { postComment, getComments } = require('../controllers/comments.js');
@@ -12,6 +13,7 @@ const commentsRouter = require('./comments-router');
 articlesRouter
   .route('/')
   .get(getArticles)
+  .post(postArticle)
   .all(notAllowed);
 
 articlesRouter
