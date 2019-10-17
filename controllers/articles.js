@@ -3,6 +3,8 @@ const {
   updateArticle,
   selectArticles
 } = require('../models/articles.js');
+const { selectUserByUsername } = require('../models/users');
+const { selectTopicBySlug } = require('../models/topics');
 
 exports.getArticle = (req, res, next) => {
   selectArticle(req.params.article_id)
@@ -18,7 +20,7 @@ exports.patchArticle = (req, res, next) => {
   else
     updateArticle(req.params.article_id, req.body)
       .then(([article]) => {
-        if (article) res.send(article);
+        if (article) res.send({ article });
         else res.status(404).send({ msg: 'Article not found!' });
       })
       .catch(next);

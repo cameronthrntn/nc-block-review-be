@@ -12,9 +12,6 @@ after(() => connection.destroy());
 beforeEach(() => connection.seed.run());
 
 describe('endpoints', () => {
-  after(() => {
-    connection.destroy();
-  });
   it('Status 404: path not found for invalid path', () => {
     return request(app)
       .get('/api/sdfsdf')
@@ -153,12 +150,14 @@ describe('endpoints', () => {
               .expect(200)
               .then(({ body }) => expect(body.articles).to.be.an('array'));
           });
-          it('Status 200: Should return an array of size 12', () => {
+          it('Status 200: Each article should have a comment_count property', () => {
             return request(app)
               .get('/api/articles')
               .expect(200)
               .then(({ body }) => {
-                expect(body.articles).to.be.lengthOf(12);
+                body.articles.forEach(article => {
+                  expect(article).to.haveOwnProperty('comment_count');
+                });
               });
           });
           it('Status 200: Should sort given results by creation date by default', () => {
@@ -229,6 +228,14 @@ describe('endpoints', () => {
                 expect(body.articles.length).to.equal(2);
               });
           });
+          xit('Status 200: Should return an array of size 5 by default', () => {
+            return request(app)
+              .get('/api/articles')
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.articles).to.be.lengthOf(5);
+              });
+          });
         });
         describe('Error Handling', () => {
           it('Status 404: Should return a 404 when trying to sort by a non-existant column', () => {
@@ -251,17 +258,15 @@ describe('endpoints', () => {
                 })
               );
           });
-          it('Status 200: Should return an empty array for an author that doesnt exist', () => {
+          it('Status 400: Should return a 400 for an author that doesnt exist', () => {
             return request(app)
               .get('/api/articles?author=vnsoibs')
-              .expect(200)
-              .then(({ body }) => expect(body.articles.length).to.equal(0));
+              .expect(400);
           });
-          it('Status 200: Should return an empty array for a topic that doesnt exist', () => {
+          it('Status 400: Should return a 400 for a topic that doesnt exist', () => {
             return request(app)
               .get('/api/articles?topic=vnsoibs')
-              .expect(200)
-              .then(({ body }) => expect(body.articles.length).to.equal(0));
+              .expect(400);
           });
         });
       });
@@ -341,7 +346,7 @@ describe('endpoints', () => {
                 .send({ inc_votes: 20 })
                 .expect(200)
                 .then(({ body }) => {
-                  expect(body.votes).to.equal(120);
+                  expect(body.article.votes).to.equal(120);
                 });
             });
             it('Status 200: Should decrement an articles vote count when given an appropriate ID and a negative number', () => {
@@ -350,7 +355,7 @@ describe('endpoints', () => {
                 .send({ inc_votes: -20 })
                 .expect(200)
                 .then(({ body }) => {
-                  expect(body.votes).to.equal(80);
+                  expect(body.article.votes).to.equal(80);
                 });
             });
             it('Status 200: Should not modify any other part of the article', () => {
@@ -359,12 +364,12 @@ describe('endpoints', () => {
                 .send({ inc_votes: 20 })
                 .expect(200)
                 .then(({ body }) => {
-                  expect(body.votes).to.equal(120);
-                  expect(body.article_id).to.equal(1);
-                  expect(body.body).to.equal(
+                  expect(body.article.votes).to.equal(120);
+                  expect(body.article.article_id).to.equal(1);
+                  expect(body.article.body).to.equal(
                     'I find this existence challenging'
                   );
-                  expect(body.author).to.equal('butter_bridge');
+                  expect(body.article.author).to.equal('butter_bridge');
                 });
             });
           });
@@ -522,7 +527,6 @@ describe('endpoints', () => {
                   .expect(200)
                   .then(({ body }) => {
                     body.comments.forEach(comment => {
-                      // console.log(comment);
                       expect(comment.article_id).to.equal(1);
                     });
                   });
@@ -612,7 +616,7 @@ describe('endpoints', () => {
                 .send({ inc_votes: 20 })
                 .expect(200)
                 .then(({ body }) => {
-                  expect(body.votes).to.equal(36);
+                  expect(body.comment.votes).to.equal(36);
                 });
             });
             it('Status 200: Should decrement a comments vote count when given an appropriate ID and a negative number', () => {
@@ -621,7 +625,7 @@ describe('endpoints', () => {
                 .send({ inc_votes: -5 })
                 .expect(200)
                 .then(({ body }) => {
-                  expect(body.votes).to.equal(11);
+                  expect(body.comment.votes).to.equal(11);
                 });
             });
             it('Status 200: Should not modify any other part of the comment', () => {
@@ -630,12 +634,12 @@ describe('endpoints', () => {
                 .send({ inc_votes: 20 })
                 .expect(200)
                 .then(({ body }) => {
-                  expect(body.votes).to.equal(36);
-                  expect(body.comment_id).to.equal(1);
-                  expect(body.body).to.equal(
+                  expect(body.comment.votes).to.equal(36);
+                  expect(body.comment.comment_id).to.equal(1);
+                  expect(body.comment.body).to.equal(
                     "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!"
                   );
-                  expect(body.author).to.equal('butter_bridge');
+                  expect(body.comment.author).to.equal('butter_bridge');
                 });
             });
           });

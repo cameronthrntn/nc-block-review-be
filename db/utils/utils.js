@@ -1,15 +1,9 @@
 exports.formatDates = list => {
-  const arr = [];
-  list.forEach(item => {
-    arr.push({ ...item });
+  return list.map(item => {
+    const spreadObj = { ...item };
+    spreadObj.created_at = new Date(item.created_at).toGMTString();
+    return spreadObj;
   });
-  const dates = arr.map(item => {
-    item.created_at = new Date(item.created_at).toGMTString();
-    return item;
-  });
-  // console.log(dates);
-
-  return dates;
 };
 
 exports.makeRefObj = list => {
@@ -21,16 +15,13 @@ exports.makeRefObj = list => {
 };
 
 exports.formatComments = (comments, articleRef) => {
-  const rtrn = [];
-  comments.forEach(item => {
-    rtrn.push({ ...item });
+  return comments.map(item => {
+    const comment = { ...item };
+    comment.author = comment.created_by;
+    if (articleRef) comment.belongs_to = articleRef[comment.belongs_to];
+    comment.article_id = comment.belongs_to;
+    delete comment.created_by;
+    delete comment.belongs_to;
+    return comment;
   });
-  for (let i = 0; i < rtrn.length; i++) {
-    rtrn[i].author = rtrn[i].created_by;
-    if (articleRef) rtrn[i].belongs_to = articleRef[rtrn[i].belongs_to];
-    rtrn[i].article_id = rtrn[i].belongs_to;
-    delete rtrn[i].created_by;
-    delete rtrn[i].belongs_to;
-  }
-  return rtrn;
 };

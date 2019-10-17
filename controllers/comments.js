@@ -35,7 +35,7 @@ exports.patchComment = (req, res, next) => {
     updateComment(req.params.comment_id, req.body)
       .then(([comment]) => {
         if (!comment) res.status(404).send({ msg: 'Comment not found!' });
-        else res.send(comment);
+        else res.send({ comment });
       })
       .catch(next);
 };

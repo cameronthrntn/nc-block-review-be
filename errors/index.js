@@ -1,5 +1,4 @@
 exports.handleSQLError = (err, req, res, next) => {
-  // console.log(err);
   switch (err.code) {
     case '22P02':
       res.status(400).send({ msg: 'Bad request!' });
@@ -19,7 +18,6 @@ exports.handleSQLError = (err, req, res, next) => {
   }
 };
 
-//Controller for error handling, not middleware function
 exports.notAllowed = (req, res, next) => {
   res.status(405).send({ msg: 'Method not allowed!' });
 };
