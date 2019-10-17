@@ -75,3 +75,9 @@ exports.insertArticle = article => {
     .insert(article)
     .returning('*');
 };
+
+exports.removeArticle = ({ article_id }) => {
+  return connection('articles')
+    .where({ article_id })
+    .del();
+};

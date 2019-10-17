@@ -9,3 +9,9 @@ exports.selectTopicBySlug = slug => {
     .select('*')
     .where({ slug });
 };
+
+exports.insertTopic = body => {
+  return connection('topics')
+    .insert(body)
+    .returning('*');
+};

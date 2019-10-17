@@ -51,8 +51,8 @@ describe('endpoints', () => {
       });
     });
     describe('/topics', () => {
-      it('Status 405: Should only allow GET requests', () => {
-        const notAllowed = ['put', 'patch', 'delete', 'post'];
+      it('Status 405: Should only allow GET and POST requests', () => {
+        const notAllowed = ['put', 'patch', 'delete'];
         const promises = notAllowed.map(method => {
           return request(app)
             [method]('/api/topics')
@@ -85,8 +85,121 @@ describe('endpoints', () => {
         });
         describe('Error Handling', () => {});
       });
+      describe('POST', () => {
+        describe('OK', () => {
+          it('Status 201: Should allow the posting of a new topic', () => {
+            return request(app)
+              .post('/api/topics')
+              .send({
+                description: 'New Topic',
+                slug: 'Its a new topic...'
+              })
+              .expect(201);
+          });
+          it('Status 200: The new topic should appear when searching for all topics', () => {
+            return request(app)
+              .post('/api/topics')
+              .send({
+                description: 'New Topic',
+                slug: 'Its a new topic...'
+              })
+              .expect(201)
+              .then(() => {
+                return request(app)
+                  .get('/api/topics')
+                  .expect(200);
+              })
+              .then(({ body }) => {
+                const slugs = body.topics.map(topic => topic.slug);
+                expect(slugs).to.include('Its a new topic...');
+              });
+          });
+        });
+        describe('Error Handling', () => {
+          it('Status 400: Should return a 400 when given a topic without needed fields', () => {
+            return request(app)
+              .post('/api/topics')
+              .send({ slug: 'this wont work' })
+              .expect(400);
+          });
+        });
+      });
     });
     describe('/users', () => {
+      it('Status 405: Should only allow GET and POST requests', () => {
+        const notAllowed = ['put', 'patch', 'delete'];
+        const promises = notAllowed.map(method => {
+          return request(app)
+            [method]('/api/users')
+            .expect(405)
+            .then(({ body }) => {
+              expect(body.msg).to.equal('Method not allowed!');
+            });
+        });
+        return Promise.all(promises);
+      });
+      describe('GET', () => {
+        describe('OK', () => {
+          it('Status 200: Should return an array of users', () => {
+            return request(app)
+              .get('/api/users')
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.users).to.be.an('array');
+                expect(body.users[0]).to.be.an('object');
+              });
+          });
+        });
+        // describe('Error Handling', () => {});
+      });
+      describe('POST', () => {
+        describe('OK', () => {
+          it('Status 201: Should allow the posting of a new user', () => {
+            return request(app)
+              .post('/api/users')
+              .send({
+                username: 'newuser',
+                name: 'theirname',
+                avatar_url: 'This can be anything really'
+              })
+              .expect(201)
+              .then(({ body }) => {
+                expect(body.user).to.eql({
+                  username: 'newuser',
+                  name: 'theirname',
+                  avatar_url: 'This can be anything really'
+                });
+              });
+          });
+          it('Status 200: New user should appear on list of users', () => {
+            return request(app)
+              .post('/api/users')
+              .send({
+                username: 'newuser',
+                name: 'theirname',
+                avatar_url: 'This can be anything really'
+              })
+              .expect(201)
+              .then(() => {
+                return request(app)
+                  .get('/api/users')
+                  .expect(200)
+                  .then(({ body }) => {
+                    const users = body.users.map(user => user.username);
+                    expect(users).to.include('newuser');
+                  });
+              });
+          });
+        });
+        describe('Error Handling', () => {
+          it('Status 400: Should return a 400 when given a user without needed fields', () => {
+            return request(app)
+              .post('/api/users')
+              .send({ username: 'this wont work' })
+              .expect(400);
+          });
+        });
+      });
       describe('/:username', () => {
         it('Status 405: Should only allow GET requests', () => {
           const notAllowed = ['put', 'patch', 'delete', 'post'];
@@ -296,6 +409,14 @@ describe('endpoints', () => {
                 expect(body.articles).to.be.lengthOf(5);
               });
           });
+          it('Status 200: Should return an empty array for a user that exists but has no articles', () => {
+            return request(app)
+              .get('/api/articles?author=lurker')
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.articles).to.eql([]);
+              });
+          });
           xit('Status 200: Should have a key for the total number of articles', () => {
             return request(app)
               .get('/api/articles')
@@ -355,11 +476,53 @@ describe('endpoints', () => {
                 );
               });
           });
+          it('Status 200: Should appear on the list of articles', () => {
+            return request(app)
+              .post('/api/articles')
+              .send({
+                title: 'New Article!',
+                body: 'This is a new article posted to the api',
+                topic: 'mitch',
+                author: 'rogersop'
+              })
+              .expect(200)
+              .then(() => {
+                return request(app)
+                  .get('/api/articles/13')
+                  .expect(200);
+              })
+              .then(({ body }) => {
+                expect(body.article.title).to.equal('New Article!');
+              });
+          });
+        });
+        describe('Error Handling', () => {
+          it('Status 400: Should return 400 when request body is missing required fields', () => {
+            return request(app)
+              .post('/api/articles')
+              .send({
+                body: 'This is a new article posted to the api',
+                topic: 'mitch',
+                author: 'rogersop'
+              })
+              .expect(400);
+          });
+          it('Status 422: Should return 422 when request body has invalid foreign keys', () => {
+            return request(app)
+              .post('/api/articles')
+              .send({
+                title: 'New Article!',
+                body: 'This is a new article posted to the api',
+                topic: 'mitch',
+                author: 'doesntExist'
+              })
+              .expect(422);
+          });
         });
       });
       describe('/:article_id', () => {
-        it('Status 405: Should only allow GET and PATCH requests', () => {
-          const notAllowed = ['put', 'delete', 'post'];
+        it('Status 405: Should only allow GET, PATCH , and DELETE requests', () => {
+          const notAllowed = ['put', 'post'];
           const promises = notAllowed.map(method => {
             return request(app)
               [method]('/api/articles/1')
@@ -495,6 +658,32 @@ describe('endpoints', () => {
                 .then(({ body }) => {
                   expect(body.msg).to.equal('Bad request!');
                 });
+            });
+          });
+        });
+        describe('DELETE', () => {
+          describe('OK', () => {
+            it('Status 204: Should allow for the deletion of an article when given a valid id', () => {
+              return request(app)
+                .del('/api/articles/1')
+                .expect(204);
+            });
+          });
+          describe('Error Handling', () => {
+            it('Status 404: Should return 404 for comments of that article once it has been deleted', () => {
+              return request(app)
+                .del('/api/articles/1')
+                .expect(204)
+                .then(() => {
+                  return request(app)
+                    .get('/api/articles/1/comments')
+                    .expect(404);
+                });
+            });
+            it('Status 404: Should return 404 for trying to delete an article that doesnt exist', () => {
+              return request(app)
+                .del('/api/articles/342')
+                .expect(404);
             });
           });
         });

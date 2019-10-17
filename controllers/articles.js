@@ -2,7 +2,8 @@ const {
   selectArticle,
   updateArticle,
   selectArticles,
-  insertArticle
+  insertArticle,
+  removeArticle
 } = require('../models/articles.js');
 const { selectUserByUsername } = require('../models/users');
 const { selectTopicBySlug } = require('../models/topics');
@@ -39,6 +40,18 @@ exports.postArticle = (req, res, next) => {
   insertArticle(req.body)
     .then(([article]) => {
       res.send({ article });
+    })
+    .catch(next);
+};
+
+exports.deleteArticle = (req, res, next) => {
+  selectArticle(req.params.article_id)
+    .then(([article]) => {
+      if (!article) return Promise.reject({ code: '42703' });
+      else return removeArticle(req.params);
+    })
+    .then(() => {
+      res.status(204).send();
     })
     .catch(next);
 };

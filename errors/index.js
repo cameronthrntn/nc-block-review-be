@@ -12,7 +12,7 @@ exports.handleSQLError = (err, req, res, next) => {
       res.status(400).send({ msg: 'Missing required data!' });
       break;
     case '23503':
-      res.status(400).send({ msg: 'Relation does not exist!' });
+      res.status(422).send({ msg: 'Relation does not exist!' });
       break;
     default:
       console.log(err);

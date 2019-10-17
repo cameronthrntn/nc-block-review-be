@@ -4,7 +4,8 @@ const {
   getArticles,
   getArticle,
   postArticle,
-  patchArticle
+  patchArticle,
+  deleteArticle
 } = require('../controllers/articles.js');
 const { postComment, getComments } = require('../controllers/comments.js');
 const { notAllowed } = require('../errors');
@@ -20,6 +21,7 @@ articlesRouter
   .route('/:article_id')
   .get(getArticle)
   .patch(patchArticle)
+  .delete(deleteArticle)
   .all(notAllowed);
 
 articlesRouter

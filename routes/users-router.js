@@ -1,7 +1,17 @@
 const express = require('express');
 const usersRouter = express.Router();
-const { getUserByUsername } = require('../controllers/users.js');
+const {
+  getUserByUsername,
+  getUsers,
+  postUser
+} = require('../controllers/users.js');
 const { notAllowed } = require('../errors');
+
+usersRouter
+  .route('/')
+  .get(getUsers)
+  .post(postUser)
+  .all(notAllowed);
 
 usersRouter
   .route('/:username')
