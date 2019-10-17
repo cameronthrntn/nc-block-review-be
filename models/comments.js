@@ -19,7 +19,10 @@ exports.insertComment = (id, body) => {
     });
 };
 
-exports.selectComments = (id, { sort_by = 'created_at', order = 'desc' }) => {
+exports.selectComments = (
+  id,
+  { sort_by = 'created_at', order = 'desc', limit = 10, p = 1 }
+) => {
   const orders = { asc: 'asc', desc: 'desc' };
   return connection('articles')
     .select('*')
@@ -39,7 +42,9 @@ exports.selectComments = (id, { sort_by = 'created_at', order = 'desc' }) => {
             'articles.article_id'
           )
           .where('articles.article_id', id)
-          .orderBy(sort_by, orders[order]);
+          .orderBy(sort_by, orders[order])
+          .limit(limit)
+          .offset((p - 1) * limit);
       }
     });
 };

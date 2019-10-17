@@ -228,25 +228,47 @@ describe('endpoints', () => {
                 expect(body.articles.length).to.equal(2);
               });
           });
-          xit('Status 200: Should return an array of size 5 by default', () => {
+          it('Status 200: Should return an array of size 10 by default', () => {
             return request(app)
               .get('/api/articles')
               .expect(200)
               .then(({ body }) => {
-                expect(body.articles).to.be.lengthOf(5);
+                expect(body.articles).to.be.lengthOf(10);
               });
           });
-        });
-        describe('Error Handling', () => {
-          it('Status 404: Should return a 404 when trying to sort by a non-existant column', () => {
-            it('Status 200: Should sort given results by any valid column', () => {
-              return request(app)
-                .get('/api/articles?sort_by=gpngwpngrnp')
-                .expect(404)
-                .then(({ body }) => {
-                  expect(body.msg).to.be.equal('Column not found!');
-                });
-            });
+          it('Status 200: Should return an array of size n', () => {
+            return request(app)
+              .get('/api/articles?limit=7')
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.articles).to.be.lengthOf(7);
+              });
+          });
+          it('Status 200: Should only show the first page of results by default', () => {
+            return request(app)
+              .get('/api/articles')
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.articles[0].article_id).to.equal(1);
+                expect(body.articles[9].article_id).to.equal(10);
+              });
+          });
+          it('Status 200: Should show a different page of results when passed a "p" query', () => {
+            return request(app)
+              .get('/api/articles?p=2')
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.articles[0].article_id).to.equal(11);
+              });
+          });
+          it('Status 200: Should show be able to have 3 pages when limit is 4', () => {
+            return request(app)
+              .get('/api/articles?p=3&limit=4')
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.articles[0].article_id).to.equal(9);
+                expect(body.articles).to.be.lengthOf(4);
+              });
           });
           it('Status 200: Should order given results by descending when given incorrect order', () => {
             return request(app)
@@ -257,6 +279,45 @@ describe('endpoints', () => {
                   descending: true
                 })
               );
+          });
+          it('Status 200: Should return all results when given a limit higher than the total number of articles', () => {
+            return request(app)
+              .get('/api/articles?limit=200')
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.articles).to.be.lengthOf(12);
+              });
+          });
+          it('Status 200: Should return less items on the last page is items dont divide evenly among pages', () => {
+            return request(app)
+              .get('/api/articles?p=2&limit=7')
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.articles).to.be.lengthOf(5);
+              });
+          });
+          it('Status 200: Should have a key for the total number of articles', () => {
+            return request(app)
+              .get('/api/articles')
+              .expect(200)
+              .then(({ body }) => {
+                expect(body).to.haveOwnProperty('total_count');
+              });
+          });
+          xit('Status 200: The total_count should reflect the number of rows returned after a query but before limiting', () => {
+            return request(app)
+              .get('/api/articles?author=rogersop&limit=2')
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.total_count).to.equal(3);
+              });
+          });
+        });
+        describe('Error Handling', () => {
+          it('Status 400: Should return a 400 when trying to sort by a non-existant column', () => {
+            return request(app)
+              .get('/api/articles?sort_by=gpngwpngrnp')
+              .expect(400);
           });
           it('Status 400: Should return a 400 for an author that doesnt exist', () => {
             return request(app)
@@ -577,6 +638,64 @@ describe('endpoints', () => {
                     expect(body.comments).to.be.sortedBy('votes', {
                       descending: true
                     });
+                  });
+              });
+              it('Status 200: Should return an array of size 10 by default', () => {
+                return request(app)
+                  .get('/api/articles/1/comments')
+                  .expect(200)
+                  .then(({ body }) => {
+                    expect(body.comments).to.be.lengthOf(10);
+                  });
+              });
+              it('Status 200: Should return an array of size n', () => {
+                return request(app)
+                  .get('/api/articles/1/comments?limit=7')
+                  .expect(200)
+                  .then(({ body }) => {
+                    expect(body.comments).to.be.lengthOf(7);
+                  });
+              });
+              it('Status 200: Should only show the first page of results by default', () => {
+                return request(app)
+                  .get('/api/articles/1/comments')
+                  .expect(200)
+                  .then(({ body }) => {
+                    expect(body.comments[0].comment_id).to.equal(2);
+                    expect(body.comments[9].comment_id).to.equal(11);
+                  });
+              });
+              it('Status 200: Should show a different page of results when passed a "p" query', () => {
+                return request(app)
+                  .get('/api/articles/1/comments?p=2')
+                  .expect(200)
+                  .then(({ body }) => {
+                    expect(body.comments[0].comment_id).to.equal(12);
+                  });
+              });
+              it('Status 200: Should show be able to have 3 pages when limit is 4', () => {
+                return request(app)
+                  .get('/api/articles/1/comments?p=3&limit=4')
+                  .expect(200)
+                  .then(({ body }) => {
+                    expect(body.comments[0].comment_id).to.equal(10);
+                    expect(body.comments).to.be.lengthOf(4);
+                  });
+              });
+              it('Status 200: Should return all results when given a limit higher than the total number of comments', () => {
+                return request(app)
+                  .get('/api/articles/1/comments?limit=200')
+                  .expect(200)
+                  .then(({ body }) => {
+                    expect(body.comments).to.be.lengthOf(13);
+                  });
+              });
+              it('Status 200: Should return less items on the last page is items dont divide evenly among pages', () => {
+                return request(app)
+                  .get('/api/articles/1/comments?p=2&limit=7')
+                  .expect(200)
+                  .then(({ body }) => {
+                    expect(body.comments).to.be.lengthOf(6);
                   });
               });
             });

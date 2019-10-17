@@ -29,7 +29,7 @@ exports.patchArticle = (req, res, next) => {
 exports.getArticles = (req, res, next) => {
   selectArticles(req.query)
     .then(articles => {
-      res.send({ articles });
+      res.send({ total_count: articles.length, articles });
     })
     .catch(next);
 };

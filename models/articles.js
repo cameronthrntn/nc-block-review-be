@@ -16,18 +16,27 @@ exports.updateArticle = (id, body) => {
     .returning('*');
 };
 
-exports.selectArticles = ({ sort_by = 'created_at', order, author, topic }) => {
+exports.selectArticles = ({
+  sort_by = 'created_at',
+  order,
+  author,
+  topic,
+  limit = 10,
+  p = 1
+}) => {
   const orders = { asc: 'asc', desc: 'desc' };
   const articleQuery = connection('articles')
     .select('articles.*')
-    .count({ comment_count: 'comments.article_id' })
     .leftJoin('comments', 'comments.article_id', 'articles.article_id')
     .groupBy('articles.article_id')
     .modify(query => {
       if (author) query.where({ 'articles.author': author });
       if (topic) query.where({ 'articles.topic': topic });
     })
-    .orderBy(sort_by, orders[order] || 'desc');
+    .orderBy(sort_by, orders[order] || 'desc')
+    .count({ comment_count: 'comments.article_id' })
+    .limit(limit)
+    .offset((p - 1) * limit);
 
   const promiseArray = [articleQuery];
 
