@@ -14,12 +14,15 @@ const baseConfig = {
 
 const customConfig = {
   development: {
+    JWT_SECRET: 'secret key',
     connection: {
       database: 'nc_news',
       ...creds
     }
   },
   test: {
+    JWT_SECRET: 'secret key',
+
     connection: {
       database: 'nc_news_test',
       ...creds

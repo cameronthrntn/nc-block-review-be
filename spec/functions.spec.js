@@ -3,7 +3,8 @@ const { expect } = require('chai');
 const {
   formatDates,
   makeRefObj,
-  formatComments
+  formatComments,
+  formatUsers
 } = require('../db/utils/utils');
 
 describe('UTILS', () => {
@@ -75,6 +76,12 @@ describe('UTILS', () => {
       const ref = { articleTitle: 1 };
       formatComments(obj);
       expect(obj).to.eql([{ created_by: 'john', belongs_to: 'articleTitle' }]);
+    });
+  });
+  describe('formatUsers', () => {
+    it('User passwords should be encrypted before being stored in the DB', () => {
+      let users = [{ password: 'testPassword' }];
+      expect(formatUsers(users)[0].password).to.not.equal(users[0].password);
     });
   });
 });

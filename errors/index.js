@@ -14,6 +14,11 @@ exports.handleSQLError = (err, req, res, next) => {
     case '23503':
       res.status(422).send({ msg: 'Relation does not exist!' });
       break;
+    case 'invalidCredentials':
+      res
+        .status(401)
+        .send({ msg: 'The provided login credentials are invalid' });
+      break;
     default:
       console.log(err);
       res.status(500).send({ msg: 'Internal error!' });
