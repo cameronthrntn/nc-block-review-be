@@ -5,7 +5,12 @@ const {
   userData
 } = require('../data/index.js');
 
-const { formatDates, formatComments, makeRefObj } = require('../utils/utils');
+const {
+  formatDates,
+  formatComments,
+  makeRefObj,
+  formatUsers
+} = require('../utils/utils');
 
 exports.seed = function(knex) {
   return knex.migrate
@@ -15,8 +20,10 @@ exports.seed = function(knex) {
       const topicsInsertions = knex('topics')
         .insert(topicData)
         .returning('*');
+
+      const encryptedusers = formatUsers(userData);
       const usersInsertions = knex('users')
-        .insert(userData)
+        .insert(encryptedusers)
         .returning('*');
 
       return Promise.all([topicsInsertions, usersInsertions]);

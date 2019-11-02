@@ -1,3 +1,5 @@
+const bcrypt = require('bcrypt');
+
 exports.formatDates = list => {
   return list.map(item => {
     const spreadObj = { ...item };
@@ -24,4 +26,11 @@ exports.formatComments = (comments, articleRef) => {
     delete comment.belongs_to;
     return comment;
   });
+};
+
+exports.formatUsers = users => {
+  return users.map(user => ({
+    ...user,
+    password: bcrypt.hashSync(user.password, 10)
+  }));
 };
