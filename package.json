@@ -36,7 +36,7 @@
     "express": "^4.17.1",
     "jsonwebtoken": "^8.5.1",
     "knex": "^0.19.5",
-    "mocha": "^6.2.1",
+    "mocha": "^10.2.0",
     "nodemon": "^1.19.3",
     "pg": "^7.12.1",
     "superagent-defaults": "^0.1.14",
